@@ -3,11 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 // In-memory store shared via globalThis. For production (e.g. Vercel multi-instance), use a persistent store (Vercel KV, Upstash Redis, or a database).
 const STORE_KEY = "__daily_disciplines_groups_store__";
 function getStore(): Map<string, { id: string; name: string; code: string }> {
-  if (typeof globalThis !== "undefined" && (globalThis as Record<string, unknown>)[STORE_KEY]) {
-    return (globalThis as Record<string, Map<string, { id: string; name: string; code: string }>>)[STORE_KEY];
+  const g = globalThis as any;
+
+  if (g[STORE_KEY]) {
+    return g[STORE_KEY];
   }
+
   const m = new Map<string, { id: string; name: string; code: string }>();
-  if (typeof globalThis !== "undefined") (globalThis as Record<string, unknown>)[STORE_KEY] = m;
+  g[STORE_KEY] = m;
+
   return m;
 }
 
