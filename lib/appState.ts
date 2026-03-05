@@ -67,6 +67,8 @@ export type AppState = {
   progress: DailyProgress[]; // per user per day
   comments: Comment[];
   weeklyEntries: WeeklyEntry[];
+  /** Notes per user per day: key = `${userId}_${dateKey}` */
+  brotherhoodNotes: Record<string, string>;
 };
 
 const STORAGE_KEY = "daily_disciplines_state_v1";
@@ -78,52 +80,26 @@ export function getDateKey(d: Date) {
   return `${year}-${month}-${day}`;
 }
 
+export function getYesterdayDateKey(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return getDateKey(d);
+}
+
 function id(prefix: string) {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
 export function seedState(): AppState {
-  const groupId = "group_default";
-  const leaderUserId = "user_isaac";
-
-  const users: User[] = [
-    { id: leaderUserId, name: "Isaac", role: "leader", groupId, streak: 5 },
-    { id: "user_ryan", name: "Ryan", role: "member", groupId, streak: 2 },
-    { id: "user_john", name: "John", role: "member", groupId, streak: 7 },
-    { id: "user_jake_b", name: "Jake B.", role: "member", groupId, streak: 1 },
-    { id: "user_jake_n", name: "Jake N.", role: "member", groupId, streak: 4 },
-    { id: "user_brandon", name: "Brandon", role: "member", groupId, streak: 0 },
-    { id: "user_ben", name: "Ben", role: "member", groupId, streak: 3 }
-  ];
-
-  const groups: Group[] = [
-    {
-      id: groupId,
-      name: "Brotherhood",
-      code: "DD2026",
-      leaderUserId
-    }
-  ];
-
-  const today = getDateKey(new Date());
-  const defaultMission: Mission = {
-    dateKey: today,
-    spiritual: "Read Romans 8 and pray for 10 focused minutes.",
-    physical: "Complete a 30-minute workout. No junk food.",
-    leadership: "Initiate prayer with your wife or encourage a brother.",
-    setByUserId: leaderUserId
-  };
-
   return {
-    currentUserId: leaderUserId,
-    users,
-    groups,
-    missionsByGroup: {
-      [groupId]: [defaultMission]
-    },
+    currentUserId: null,
+    users: [],
+    groups: [],
+    missionsByGroup: {},
     progress: [],
     comments: [],
-    weeklyEntries: []
+    weeklyEntries: [],
+    brotherhoodNotes: {}
   };
 }
 
@@ -134,6 +110,9 @@ export function loadState(): AppState {
     if (!raw) return seedState();
     const parsed = JSON.parse(raw) as AppState;
     if (!parsed || typeof parsed !== "object") return seedState();
+    if (!parsed.brotherhoodNotes || typeof parsed.brotherhoodNotes !== "object") {
+      parsed.brotherhoodNotes = {};
+    }
     return parsed;
   } catch {
     return seedState();

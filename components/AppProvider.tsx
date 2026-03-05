@@ -21,6 +21,7 @@ import {
   WeeklyEntry,
   getCurrentUser,
   getDateKey,
+  getYesterdayDateKey,
   getMissionForGroupAndDate,
   getOrCreateProgress,
   getGroupForUser,
@@ -45,7 +46,38 @@ type AppActions = {
   togglePersonalTask: (taskId: string) => void;
   addComment: (body: string) => void;
   addWeeklyEntry: (entry: { wins: string; struggles: string; commitments: string }) => void;
+  markBibleRead: () => void;
+  markPrayer: () => void;
+  setBrotherhoodNote: (userId: string, note: string) => void;
+  setGroupName: (groupId: string, name: string) => void;
 };
+
+export type Theme = "light" | "dark";
+
+const BIBLE_STREAK_KEY = "daily_disciplines_bible_streak_v1";
+const PRAYER_STREAK_KEY = "daily_disciplines_prayer_streak_v1";
+
+type StreakState = { streak: number; lastDateKey: string };
+
+function loadStreak(key: string): StreakState {
+  if (typeof window === "undefined") return { streak: 0, lastDateKey: "" };
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return { streak: 0, lastDateKey: "" };
+    const parsed = JSON.parse(raw) as StreakState;
+    if (typeof parsed?.streak !== "number" || typeof parsed?.lastDateKey !== "string") {
+      return { streak: 0, lastDateKey: "" };
+    }
+    return { streak: parsed.streak, lastDateKey: parsed.lastDateKey };
+  } catch {
+    return { streak: 0, lastDateKey: "" };
+  }
+}
+
+function saveStreak(key: string, data: StreakState) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(key, JSON.stringify(data));
+}
 
 type AppContextValue = {
   state: AppState;
@@ -54,16 +86,54 @@ type AppContextValue = {
   dateKey: string;
   mission: Mission | null;
   progress: DailyProgress | null;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  bibleStreak: number;
+  bibleReadToday: boolean;
+  prayerStreak: number;
+  prayerToday: boolean;
 } & AppActions;
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+const THEME_KEY = "daily-disciplines-theme";
+
+function getStoredTheme(): Theme {
+  if (typeof window === "undefined") return "dark";
+  const t = window.localStorage.getItem(THEME_KEY);
+  return t === "light" || t === "dark" ? t : "dark";
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => seedState());
+  const [theme, setThemeState] = useState<Theme>("dark");
+  const [bibleStreakState, setBibleStreakState] = useState<StreakState>({ streak: 0, lastDateKey: "" });
+  const [prayerStreakState, setPrayerStreakState] = useState<StreakState>({ streak: 0, lastDateKey: "" });
 
   useEffect(() => {
     setState(loadState());
+    setThemeState(getStoredTheme());
+    const yesterday = getYesterdayDateKey();
+    let bible = loadStreak(BIBLE_STREAK_KEY);
+    if (bible.lastDateKey && bible.lastDateKey < yesterday) {
+      bible = { streak: 0, lastDateKey: "" };
+      saveStreak(BIBLE_STREAK_KEY, bible);
+    }
+    setBibleStreakState(bible);
+    let prayer = loadStreak(PRAYER_STREAK_KEY);
+    if (prayer.lastDateKey && prayer.lastDateKey < yesterday) {
+      prayer = { streak: 0, lastDateKey: "" };
+      saveStreak(PRAYER_STREAK_KEY, prayer);
+    }
+    setPrayerStreakState(prayer);
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+    window.localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     saveState(state);
@@ -108,7 +178,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setState((prev) => ({ ...prev, currentUserId: userId }));
     }
 
-    function signUp(args: { name: string; role: Role; groupCode?: string; groupName?: string }) {
+    function signUp(args: {
+      name: string;
+      role: Role;
+      groupCode?: string;
+      groupName?: string;
+      serverGroup?: { groupId: string; name: string; code: string };
+    }) {
       const name = args.name.trim();
       if (!name) {
         throw new Error("Name is required.");
@@ -116,13 +192,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const groupCode = (args.groupCode ?? "").trim();
       const groupName = (args.groupName ?? "").trim();
+      const serverGroup = args.serverGroup;
 
       setState((prev) => {
         let nextGroups = [...prev.groups];
         let nextUsers = [...prev.users];
 
         let group: Group | undefined;
-        if (groupCode) {
+        if (serverGroup) {
+          group = nextGroups.find((g) => g.id === serverGroup.groupId);
+          if (!group) {
+            const newGroup: Group = {
+              id: serverGroup.groupId,
+              name: serverGroup.name,
+              code: serverGroup.code,
+              leaderUserId: args.role === "leader" ? "pending" : ""
+            };
+            nextGroups = [newGroup, ...nextGroups];
+            group = newGroup;
+          }
+        } else if (groupCode) {
           group = nextGroups.find((g) => g.code.toLowerCase() === groupCode.toLowerCase());
           if (!group) {
             throw new Error("Group code not found.");
@@ -130,7 +219,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           const newGroup: Group = {
             id: helpers.id("group"),
-            name: groupName || "New Brotherhood",
+            name: groupName || "New Small Group",
             code: Math.random().toString(36).slice(2, 8).toUpperCase(),
             leaderUserId: "pending"
           };
@@ -147,7 +236,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         };
         nextUsers = [user, ...nextUsers];
 
-        if (!groupCode && args.role === "leader") {
+        if (args.role === "leader") {
           nextGroups = nextGroups.map((g) =>
             g.id === group!.id ? { ...g, leaderUserId: user.id } : g
           );
@@ -286,6 +375,59 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     }
 
+    function markBibleRead() {
+      const today = getDateKey(new Date());
+      const yesterday = getYesterdayDateKey();
+      setBibleStreakState((prev) => {
+        if (prev.lastDateKey === today) return prev;
+        let nextStreak = prev.streak;
+        if (prev.lastDateKey === yesterday) nextStreak += 1;
+        else nextStreak = 1;
+        const next = { streak: nextStreak, lastDateKey: today };
+        saveStreak(BIBLE_STREAK_KEY, next);
+        return next;
+      });
+    }
+
+    function markPrayer() {
+      const today = getDateKey(new Date());
+      const yesterday = getYesterdayDateKey();
+      setPrayerStreakState((prev) => {
+        if (prev.lastDateKey === today) return prev;
+        let nextStreak = prev.streak;
+        if (prev.lastDateKey === yesterday) nextStreak += 1;
+        else nextStreak = 1;
+        const next = { streak: nextStreak, lastDateKey: today };
+        saveStreak(PRAYER_STREAK_KEY, next);
+        return next;
+      });
+    }
+
+    function setBrotherhoodNote(userId: string, note: string) {
+      const key = `${userId}_${dateKey}`;
+      setState((prev) => ({
+        ...prev,
+        brotherhoodNotes: { ...prev.brotherhoodNotes, [key]: note }
+      }));
+    }
+
+    function setGroupName(groupId: string, name: string) {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      setState((prev) => {
+        const user = getCurrentUser(prev);
+        if (!user || user.groupId !== groupId) return prev;
+        const g = prev.groups.find((gr) => gr.id === groupId);
+        if (!g || g.leaderUserId !== user.id) return prev;
+        return {
+          ...prev,
+          groups: prev.groups.map((gr) =>
+            gr.id === groupId ? { ...gr, name: trimmed } : gr
+          )
+        };
+      });
+    }
+
     return {
       setCurrentUserId,
       signUp,
@@ -295,9 +437,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPersonalTask,
       togglePersonalTask,
       addComment,
-      addWeeklyEntry
+      addWeeklyEntry,
+      markBibleRead,
+      markPrayer,
+      setBrotherhoodNote,
+      setGroupName
     };
   }, [dateKey]);
+
+  const setTheme = useMemo(
+    () => (t: Theme) => setThemeState(t),
+    []
+  );
+
+  const bibleReadToday = bibleStreakState.lastDateKey === dateKey;
+  const prayerToday = prayerStreakState.lastDateKey === dateKey;
 
   const value: AppContextValue = useMemo(
     () => ({
@@ -307,9 +461,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dateKey,
       mission,
       progress,
+      theme,
+      setTheme,
+      bibleStreak: bibleStreakState.streak,
+      bibleReadToday,
+      prayerStreak: prayerStreakState.streak,
+      prayerToday,
       ...actions
     }),
-    [state, currentUser, group, dateKey, mission, progress, actions]
+    [state, currentUser, group, dateKey, mission, progress, theme, bibleStreakState, bibleReadToday, prayerStreakState, prayerToday, actions]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

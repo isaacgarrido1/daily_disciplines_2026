@@ -7,18 +7,25 @@ import { AppProvider } from "@/components/AppProvider";
 export const metadata: Metadata = {
   title: "Daily Disciplines 2026",
   description:
-    "A 30-day accountability dashboard for a Christian men's brotherhood."
+    "A 30-day accountability dashboard for a Christian men's small group."
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var r=document.documentElement,t=localStorage.getItem('daily-disciplines-theme');if(t==='light')r.classList.remove('dark');else r.classList.add('dark');})();`
+          }}
+        />
+      </head>
       <body className="app-shell">
         <AppProvider>
           <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-6 sm:px-6 lg:px-8">
             <NavBar />
             <main className="mt-8 flex-1">{children}</main>
-            <footer className="mt-8 border-t border-slate-800 pt-4 text-xs text-slate-500">
+            <footer className="mt-8 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500">
               Daily Disciplines 2026 · 30-day pilot
             </footer>
           </div>

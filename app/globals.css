@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
+}
+
+.dark {
   color-scheme: dark;
 }
 
@@ -14,7 +18,7 @@ body {
 }
 
 body {
-  @apply bg-background text-slate-100 font-sans antialiased;
+  @apply bg-white font-sans antialiased text-slate-900 dark:bg-background dark:text-slate-100;
 }
 
 *,
@@ -24,6 +28,6 @@ body {
 }
 
 .app-shell {
-  @apply min-h-screen bg-background;
+  @apply min-h-screen bg-white dark:bg-background;
 }
 
