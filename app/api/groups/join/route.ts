@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStore } from "../store"; // import from the shared store
+
+const STORE_KEY = "__daily_disciplines_groups_store__";
+
+function getStore(): Map<string, { id: string; name: string; code: string }> {
+  const g = globalThis as Record<string, unknown>;
+  if (g[STORE_KEY]) {
+    return g[STORE_KEY] as Map<string, { id: string; name: string; code: string }>;
+  }
+  const m = new Map<string, { id: string; name: string; code: string }>();
+  g[STORE_KEY] = m;
+  return m;
+}
 
 /** GET ?code=XXX - Look up group by code for joining. */
 export async function GET(request: NextRequest) {

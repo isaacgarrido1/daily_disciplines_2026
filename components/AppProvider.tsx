@@ -38,6 +38,7 @@ type AppActions = {
     role: Role;
     groupCode?: string;
     groupName?: string;
+    serverGroup?: { groupId: string; name: string; code: string };
   }) => void;
   setTodayMission: (mission: Omit<Mission, "dateKey" | "setByUserId">) => void;
   toggleChallenge: (key: DisciplineKey) => void;
