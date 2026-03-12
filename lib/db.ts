@@ -18,3 +18,50 @@ export function isMissingTableError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return /relation "groups" does not exist|relation .groups. does not exist/i.test(msg);
 }
+
+let schemaPromise: Promise<void> | null = null;
+
+/** Create tables if they don't exist. Safe to call on every request; runs once per process. */
+export async function ensureSchema(): Promise<void> {
+  if (!connectionString) return;
+  if (!schemaPromise) {
+    schemaPromise = (async () => {
+      const sql = neon(connectionString!);
+      await sql`
+        CREATE TABLE IF NOT EXISTS groups (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          code TEXT NOT NULL UNIQUE,
+          leader_user_id TEXT DEFAULT '',
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS weekly_missions (
+          id TEXT PRIMARY KEY,
+          group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+          week_key TEXT NOT NULL,
+          spiritual TEXT NOT NULL DEFAULT '',
+          physical TEXT NOT NULL DEFAULT '',
+          leadership TEXT NOT NULL DEFAULT '',
+          set_by_user_id TEXT NOT NULL DEFAULT '',
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(group_id, week_key)
+        )
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS comments (
+          id TEXT PRIMARY KEY,
+          group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+          author_user_id TEXT NOT NULL,
+          author_name TEXT NOT NULL,
+          body TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+      await sql`CREATE INDEX IF NOT EXISTS idx_weekly_missions_group_week ON weekly_missions(group_id, week_key)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_comments_group ON comments(group_id)`;
+    })();
+  }
+  await schemaPromise;
+}

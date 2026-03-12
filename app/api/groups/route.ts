@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasDatabase, getSql, isMissingTableError } from "@/lib/db";
+import { hasDatabase, getSql, isMissingTableError, ensureSchema } from "@/lib/db";
 import { getStore } from "./store";
 
 const SCHEMA_HINT =
@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     const id = generateId();
 
     if (hasDatabase()) {
+      await ensureSchema();
       const sql = getSql();
       let code = generateCode();
       for (let attempts = 0; attempts < 20; attempts++) {

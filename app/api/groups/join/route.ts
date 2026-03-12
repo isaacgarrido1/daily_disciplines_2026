@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasDatabase, getSql, isMissingTableError } from "@/lib/db";
+import { hasDatabase, getSql, isMissingTableError, ensureSchema } from "@/lib/db";
 import { getStore } from "../store";
 
 const SCHEMA_HINT =
@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
 
   if (hasDatabase()) {
     try {
+      await ensureSchema();
       const sql = getSql();
       const rows = await sql`
         SELECT id, name, code FROM groups WHERE LOWER(code) = ${code.toLowerCase()} LIMIT 1
