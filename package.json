@@ -9,8 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "queue-microtask": "^1.2.3",
+    "@neondatabase/serverless": "^1.0.2",
     "next": "^16.1.6",
+    "queue-microtask": "^1.2.3",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },

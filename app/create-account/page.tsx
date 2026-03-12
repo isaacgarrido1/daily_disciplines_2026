@@ -28,8 +28,9 @@ export default function CreateAccountPage() {
           `/api/groups/join?code=${encodeURIComponent(groupCode.trim())}`
         );
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data?.error ?? "Group code not found.");
+          const data = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
+          const message = [data?.error, data?.hint].filter(Boolean).join(" ") || "Group code not found.";
+          throw new Error(message);
         }
         const serverGroup = (await res.json()) as {
           id: string;
@@ -52,7 +53,7 @@ export default function CreateAccountPage() {
           body: JSON.stringify({ name: groupName.trim() || "New Small Group" })
         });
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
           throw new Error(data?.error ?? "Failed to create group.");
         }
         const serverGroup = (await res.json()) as {

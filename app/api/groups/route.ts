@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasDatabase, getSql, isMissingTableError } from "@/lib/db";
 import { getStore } from "./store";
+
+const SCHEMA_HINT =
+  "Database tables are missing. In Vercel: Storage → your Postgres → Query → run scripts/schema.sql, then redeploy.";
 
 function generateCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -11,13 +15,30 @@ function generateId(): string {
 
 /**
  * POST: Create a new group (leader).
- * Local-only: stores groups in memory on this server instance.
+ * Uses Neon when DATABASE_URL is set; otherwise in-memory (single instance).
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const name = (body?.name ?? "").trim() || "New Small Group";
     const id = generateId();
+
+    if (hasDatabase()) {
+      const sql = getSql();
+      let code = generateCode();
+      for (let attempts = 0; attempts < 20; attempts++) {
+        const existing = await sql`SELECT 1 FROM groups WHERE LOWER(code) = ${code.toLowerCase()} LIMIT 1`;
+        if (existing.length === 0) {
+          await sql`INSERT INTO groups (id, name, code, leader_user_id) VALUES (${id}, ${name}, ${code}, '')`;
+          return NextResponse.json({ id, name, code });
+        }
+        code = generateCode();
+      }
+      return NextResponse.json(
+        { error: "Could not generate unique code. Try again." },
+        { status: 500 },
+      );
+    }
 
     const store = getStore();
     let code = generateCode();
@@ -29,8 +50,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(entry);
   } catch (err) {
     console.error("POST /api/groups", err);
+    if (isMissingTableError(err)) {
+      return NextResponse.json({ error: SCHEMA_HINT }, { status: 503 });
+    }
     return NextResponse.json(
-      { error: "Failed to create group." },
+      { error: "Failed to create group. Check the database is set up." },
       { status: 500 },
     );
   }
