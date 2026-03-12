@@ -83,7 +83,7 @@ export default function CreateAccountPage() {
       <Card title="Create an account">
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
           Enter your name and either join an existing small group with a code, or
-          create a new group (you’ll be the leader). Members cannot set group missions.
+          create a new group (you’ll be the leader). Members cannot set weekly goals.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

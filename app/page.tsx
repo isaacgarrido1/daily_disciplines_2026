@@ -11,11 +11,12 @@ export default function DashboardPage() {
   const {
     currentUser,
     group,
+    weekKey,
     mission,
     progress,
     toggleChallenge,
     markDayComplete,
-    setTodayMission
+    setWeekMission
   } = useApp();
 
   const [draftMission, setDraftMission] = useState({
@@ -23,6 +24,15 @@ export default function DashboardPage() {
     physical: "",
     leadership: ""
   });
+
+  const weekLabel = useMemo(() => {
+    const [y, m, d] = weekKey.split("-").map(Number);
+    const mon = new Date(y, m - 1, d);
+    const sun = new Date(mon);
+    sun.setDate(sun.getDate() + 6);
+    const fmt = (d: Date) => d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    return `${fmt(mon)} – ${fmt(sun)}`;
+  }, [weekKey]);
 
   const todayLabel = useMemo(() => {
     const now = new Date();
@@ -42,13 +52,13 @@ export default function DashboardPage() {
   const allChecked = Object.values(challenges).every(Boolean);
   const dayComplete = progress?.dayComplete ?? false;
 
-  function handleSaveMission(e: React.FormEvent) {
+  function handleSaveWeekMission(e: React.FormEvent) {
     e.preventDefault();
     const spiritual = (draftMission.spiritual || mission?.spiritual || "").trim();
     const physical = (draftMission.physical || mission?.physical || "").trim();
     const leadership = (draftMission.leadership || mission?.leadership || "").trim();
     if (!spiritual || !physical || !leadership) return;
-    setTodayMission({ spiritual, physical, leadership });
+    setWeekMission({ spiritual, physical, leadership });
     setDraftMission({ spiritual: "", physical: "", leadership: "" });
   }
 
@@ -92,7 +102,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Card title="Today’s Mission">
+      <Card title="Daily Challenges">
         {!currentUser ? (
           <div className="rounded-md border border-slate-200 bg-slate-100 p-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
             <Link href="/create-account" className="text-slate-800 underline dark:text-slate-100">Create an account</Link> or <Link href="/login" className="text-slate-800 underline dark:text-slate-100">log in</Link> to begin.
@@ -100,8 +110,7 @@ export default function DashboardPage() {
         ) : null}
 
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
-          Three disciplines for today. Check them off as you complete them, then
-          mark the day complete.
+          This week&apos;s goals (set by your leader). Complete these three disciplines each day, then mark the day complete.
         </p>
 
         <div className="space-y-3">
@@ -117,7 +126,7 @@ export default function DashboardPage() {
                 Spiritual
               </p>
               <p className="text-sm text-slate-800 dark:text-slate-100">
-                {mission?.spiritual ?? "No mission set for today yet."}
+                {mission?.spiritual ?? "No goals set for this week yet."}
               </p>
             </div>
           </label>
@@ -134,7 +143,7 @@ export default function DashboardPage() {
                 Physical
               </p>
               <p className="text-sm text-slate-800 dark:text-slate-100">
-                {mission?.physical ?? "No mission set for today yet."}
+                {mission?.physical ?? "No goals set for this week yet."}
               </p>
             </div>
           </label>
@@ -151,7 +160,7 @@ export default function DashboardPage() {
                 Leadership
               </p>
               <p className="text-sm text-slate-800 dark:text-slate-100">
-                {mission?.leadership ?? "No mission set for today yet."}
+                {mission?.leadership ?? "No goals set for this week yet."}
               </p>
             </div>
           </label>
@@ -178,13 +187,15 @@ export default function DashboardPage() {
       </Card>
 
       {currentUser && currentUser.role === "leader" ? (
-        <Card title="Leader: Set Today’s Group Mission">
-          <p className="mb-4 text-sm text-slate-300">
-            As leader, you can set the group mission for today. Members will see
-            and complete these tasks.
+        <Card title="Leader: Set This Week’s Group Goals">
+          <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">
+            Set three goals for the week. The group will complete these same goals each day as daily challenges. You only need to set them once per week.
+          </p>
+          <p className="mb-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+            Week of {weekLabel}
           </p>
 
-          <form onSubmit={handleSaveMission} className="space-y-3">
+          <form onSubmit={handleSaveWeekMission} className="space-y-3">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Spiritual
@@ -195,7 +206,7 @@ export default function DashboardPage() {
                   setDraftMission((p) => ({ ...p, spiritual: e.target.value }))
                 }
                 className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-                placeholder={mission?.spiritual ?? "Enter today’s spiritual challenge"}
+                placeholder={mission?.spiritual ?? "Enter this week’s spiritual goal"}
               />
             </div>
             <div>
@@ -208,7 +219,7 @@ export default function DashboardPage() {
                   setDraftMission((p) => ({ ...p, physical: e.target.value }))
                 }
                 className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-                placeholder={mission?.physical ?? "Enter today’s physical challenge"}
+                placeholder={mission?.physical ?? "Enter this week’s physical goal"}
               />
             </div>
             <div>
@@ -221,7 +232,7 @@ export default function DashboardPage() {
                   setDraftMission((p) => ({ ...p, leadership: e.target.value }))
                 }
                 className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-                placeholder={mission?.leadership ?? "Enter today’s leadership challenge"}
+                placeholder={mission?.leadership ?? "Enter this week’s leadership goal"}
               />
             </div>
 
@@ -230,7 +241,7 @@ export default function DashboardPage() {
               className="w-full rounded-md border border-accent/40 bg-accent/90 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-accent sm:w-auto dark:text-slate-950"
               disabled={!group}
             >
-              Save Mission for Today
+              Save Goals for This Week
             </button>
           </form>
         </Card>

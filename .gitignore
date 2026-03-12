@@ -4,4 +4,8 @@ node_modules
 .env.local
 .env*.local
 .DS_Store
+__azurite_db*.json
+npm-install.log
+package-lock*.json
+!package-lock.json
 

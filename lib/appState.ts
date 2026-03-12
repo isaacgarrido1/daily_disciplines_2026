@@ -17,8 +17,9 @@ export type Group = {
   leaderUserId: string;
 };
 
-export type Mission = {
-  dateKey: string; // YYYY-MM-DD
+/** One set of goals per week; the group completes these as daily challenges each day. */
+export type WeeklyMission = {
+  weekKey: string; // YYYY-MM-DD of Monday that starts the week
   spiritual: string;
   physical: string;
   leadership: string;
@@ -63,7 +64,7 @@ export type AppState = {
   currentUserId: string | null;
   users: User[];
   groups: Group[];
-  missionsByGroup: Record<string, Mission[]>; // groupId -> missions
+  missionsByGroup: Record<string, WeeklyMission[]>; // groupId -> weekly missions
   progress: DailyProgress[]; // per user per day
   comments: Comment[];
   weeklyEntries: WeeklyEntry[];
@@ -78,6 +79,16 @@ export function getDateKey(d: Date) {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+/** Monday of the week for the given dateKey (ISO week). */
+export function getWeekKey(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.getDay(); // 0 = Sun, 1 = Mon, ...
+  const daysToMonday = day === 0 ? 6 : day - 1;
+  date.setDate(date.getDate() - daysToMonday);
+  return getDateKey(date);
 }
 
 export function getYesterdayDateKey(): string {
@@ -103,6 +114,37 @@ export function seedState(): AppState {
   };
 }
 
+/** Migrate old daily missions (dateKey) to weekly missions (weekKey). */
+function migrateMissionsByGroup(
+  missionsByGroup: Record<string, unknown[]>
+): Record<string, WeeklyMission[]> {
+  const out: Record<string, WeeklyMission[]> = {};
+  for (const [groupId, list] of Object.entries(missionsByGroup)) {
+    if (!Array.isArray(list)) continue;
+    const byWeek = new Map<string, WeeklyMission>();
+    for (const m of list) {
+      if (!m || typeof m !== "object") continue;
+      const any = m as Record<string, unknown>;
+      const weekKey = "weekKey" in any && typeof any.weekKey === "string"
+        ? (any.weekKey as string)
+        : "dateKey" in any && typeof any.dateKey === "string"
+          ? getWeekKey(any.dateKey as string)
+          : null;
+      if (!weekKey) continue;
+      const mission: WeeklyMission = {
+        weekKey,
+        spiritual: typeof any.spiritual === "string" ? any.spiritual : "",
+        physical: typeof any.physical === "string" ? any.physical : "",
+        leadership: typeof any.leadership === "string" ? any.leadership : "",
+        setByUserId: typeof any.setByUserId === "string" ? any.setByUserId : ""
+      };
+      byWeek.set(weekKey, mission);
+    }
+    out[groupId] = Array.from(byWeek.values());
+  }
+  return out;
+}
+
 export function loadState(): AppState {
   if (typeof window === "undefined") return seedState();
   try {
@@ -112,6 +154,9 @@ export function loadState(): AppState {
     if (!parsed || typeof parsed !== "object") return seedState();
     if (!parsed.brotherhoodNotes || typeof parsed.brotherhoodNotes !== "object") {
       parsed.brotherhoodNotes = {};
+    }
+    if (parsed.missionsByGroup && typeof parsed.missionsByGroup === "object") {
+      parsed.missionsByGroup = migrateMissionsByGroup(parsed.missionsByGroup);
     }
     return parsed;
   } catch {
@@ -133,13 +178,13 @@ export function getGroupForUser(state: AppState, user: User) {
   return state.groups.find((g) => g.id === user.groupId) ?? null;
 }
 
-export function getMissionForGroupAndDate(
+export function getMissionForGroupAndWeek(
   state: AppState,
   groupId: string,
-  dateKey: string
-) {
+  weekKey: string
+): WeeklyMission | null {
   const list = state.missionsByGroup[groupId] ?? [];
-  return list.find((m) => m.dateKey === dateKey) ?? null;
+  return list.find((m) => m.weekKey === weekKey) ?? null;
 }
 
 export function getOrCreateProgress(

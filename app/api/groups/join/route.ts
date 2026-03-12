@@ -12,7 +12,7 @@ function getStore(): Map<string, { id: string; name: string; code: string }> {
   return m;
 }
 
-/** GET ?code=XXX - Look up group by code for joining. */
+/** GET ?code=XXX - Look up group by code for joining (local-only in-memory store). */
 export async function GET(request: NextRequest) {
   const code = (request.nextUrl.searchParams.get("code") ?? "").trim();
   if (!code) {
@@ -24,6 +24,5 @@ export async function GET(request: NextRequest) {
   if (!group) {
     return NextResponse.json({ error: "Group code not found." }, { status: 404 });
   }
-
   return NextResponse.json(group);
 }

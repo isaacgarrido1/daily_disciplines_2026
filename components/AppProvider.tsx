@@ -14,15 +14,16 @@ import {
   DailyProgress,
   DisciplineKey,
   Group,
-  Mission,
   PersonalTask,
   Role,
   User,
   WeeklyEntry,
+  WeeklyMission,
   getCurrentUser,
   getDateKey,
+  getWeekKey,
   getYesterdayDateKey,
-  getMissionForGroupAndDate,
+  getMissionForGroupAndWeek,
   getOrCreateProgress,
   getGroupForUser,
   helpers,
@@ -40,7 +41,7 @@ type AppActions = {
     groupName?: string;
     serverGroup?: { groupId: string; name: string; code: string };
   }) => void;
-  setTodayMission: (mission: Omit<Mission, "dateKey" | "setByUserId">) => void;
+  setWeekMission: (mission: Omit<WeeklyMission, "weekKey" | "setByUserId">) => void;
   toggleChallenge: (key: DisciplineKey) => void;
   markDayComplete: () => void;
   addPersonalTask: (text: string) => void;
@@ -85,7 +86,8 @@ type AppContextValue = {
   currentUser: User | null;
   group: Group | null;
   dateKey: string;
-  mission: Mission | null;
+  weekKey: string;
+  mission: WeeklyMission | null;
   progress: DailyProgress | null;
   theme: Theme;
   setTheme: (theme: Theme) => void;
@@ -141,6 +143,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [state]);
 
   const dateKey = useMemo(() => getDateKey(new Date()), []);
+  const weekKey = useMemo(() => getWeekKey(dateKey), [dateKey]);
 
   const currentUser = useMemo(() => getCurrentUser(state), [state]);
   const group = useMemo(
@@ -149,8 +152,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const mission = useMemo(() => {
     if (!group) return null;
-    return getMissionForGroupAndDate(state, group.id, dateKey);
-  }, [state, group, dateKey]);
+    return getMissionForGroupAndWeek(state, group.id, weekKey);
+  }, [state, group, weekKey]);
 
   const progress = useMemo(() => {
     if (!currentUser) return null;
@@ -252,7 +255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    function setTodayMission(m: Omit<Mission, "dateKey" | "setByUserId">) {
+    function setWeekMission(m: Omit<WeeklyMission, "weekKey" | "setByUserId">) {
       setState((prev) => {
         const user = getCurrentUser(prev);
         if (!user) return prev;
@@ -260,9 +263,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!g) return prev;
         if (user.role !== "leader" && g.leaderUserId !== user.id) return prev;
 
-        const existing = getMissionForGroupAndDate(prev, g.id, dateKey);
-        const nextMission: Mission = {
-          dateKey,
+        const wKey = getWeekKey(dateKey);
+        const existing = getMissionForGroupAndWeek(prev, g.id, wKey);
+        const nextMission: WeeklyMission = {
+          weekKey: wKey,
           spiritual: m.spiritual,
           physical: m.physical,
           leadership: m.leadership,
@@ -271,7 +275,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         const list = prev.missionsByGroup[g.id] ?? [];
         const nextList = existing
-          ? list.map((x) => (x.dateKey === dateKey ? nextMission : x))
+          ? list.map((x) => (x.weekKey === wKey ? nextMission : x))
           : [nextMission, ...list];
 
         return {
@@ -432,7 +436,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return {
       setCurrentUserId,
       signUp,
-      setTodayMission,
+      setWeekMission,
       toggleChallenge,
       markDayComplete,
       addPersonalTask,
@@ -460,6 +464,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUser,
       group,
       dateKey,
+      weekKey,
       mission,
       progress,
       theme,
@@ -470,7 +475,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       prayerToday,
       ...actions
     }),
-    [state, currentUser, group, dateKey, mission, progress, theme, bibleStreakState, bibleReadToday, prayerStreakState, prayerToday, actions]
+    [state, currentUser, group, dateKey, weekKey, mission, progress, theme, bibleStreakState, bibleReadToday, prayerStreakState, prayerToday, actions]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 0.0.0.0 --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "queue-microtask": "^1.2.3",
     "next": "^16.1.6",
     "react": "18.3.1",
     "react-dom": "18.3.1"
@@ -19,7 +20,7 @@
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.27",
     "braces": "^3.0.3",
-    "eslint": "^10.0.2",
+    "eslint": "^9.0.0",
     "eslint-config-next": "^16.1.6",
     "postcss": "^8.5.8",
     "sucrase": "^3.35.1",

@@ -78,7 +78,7 @@ export default function SmallGroupPage() {
       <Card title="Encouragement Wall">
         <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
           Leave a short encouragement, Scripture, or word of challenge to the
-          the group. This is stored only in memory for the session.
+          group. This is stored only in this browser for now.
         </p>
 
         <form
