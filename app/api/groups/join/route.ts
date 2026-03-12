@@ -3,7 +3,7 @@ import { hasDatabase, getSql, isMissingTableError } from "@/lib/db";
 import { getStore } from "../store";
 
 const SCHEMA_HINT =
-  "Database tables are missing. In Vercel: Storage → your Postgres → Query → run scripts/schema.sql, then redeploy.";
+  "Database tables are missing. From your project folder run: node scripts/run-schema.mjs (with DATABASE_URL in .env.local). Or in Neon: console.neon.tech → your project → SQL Editor → paste and run scripts/schema.sql.";
 
 /** GET ?code=XXX - Look up group by code for joining. Uses Neon when DATABASE_URL is set. */
 export async function GET(request: NextRequest) {

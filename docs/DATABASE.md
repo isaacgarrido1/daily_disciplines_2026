@@ -17,8 +17,9 @@ When `DATABASE_URL` (or `POSTGRES_URL`) is set, the app uses **Neon** for groups
    - **Value:** paste the connection string (same one Neon/Vercel shows).  
    Add for **Production** (and Preview if you want). Save.
 
-3. **Create tables**  
-   In Vercel → **Storage** → your Postgres → **Query**, paste and run the full contents of **`scripts/schema.sql`** (creates `groups`, `weekly_missions`, `comments`). Run once.
+3. **Create tables** (pick one):
+   - **Easiest:** From your project folder (with `DATABASE_URL` in `.env.local`), run: **`node scripts/run-schema.mjs`**. This creates the tables in your Neon DB.
+   - **Or** in the Neon dashboard: go to [console.neon.tech](https://console.neon.tech) → your project → **SQL Editor** → paste the contents of **`scripts/schema.sql`** → Run. (Vercel doesn’t have a Query tab; the SQL editor is in Neon.)
 
 4. **Deploy**  
    Push to your connected repo or trigger a new deployment. Production will use `DATABASE_URL`; create group and join-by-code will use Neon.
