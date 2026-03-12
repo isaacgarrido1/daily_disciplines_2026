@@ -1,0 +1,14 @@
+---
+description: After making code or config changes, commit and push to GitHub so Vercel stays updated
+alwaysApply: true
+---
+
+# Deploy to GitHub after changes
+
+When you modify project code, config, or docs in this repo:
+
+1. Stage the changed files: `git add` the relevant paths (never add `.env` or `.env.local`).
+2. Commit with a short, clear message: `git commit -m "Brief description"`.
+3. Push to GitHub: `git push origin main`.
+
+Do this at the end of your response when you have made file changes, so Vercel picks up the update. Skip if the user asked not to deploy or only asked a question with no edits.
