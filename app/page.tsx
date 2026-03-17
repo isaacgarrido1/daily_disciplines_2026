@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { ScriptureOfTheDay } from "@/components/ScriptureOfTheDay";
@@ -24,6 +24,33 @@ export default function DashboardPage() {
     physical: "",
     leadership: ""
   });
+
+  useEffect(() => {
+    async function loadMission() {
+      if (!group) return;
+      try {
+        const res = await fetch(
+          `/api/missions?groupId=${encodeURIComponent(group.id)}&weekKey=${encodeURIComponent(
+            weekKey
+          )}`
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          mission: { spiritual: string; physical: string; leadership: string } | null;
+        };
+        if (data.mission) {
+          setWeekMission({
+            spiritual: data.mission.spiritual,
+            physical: data.mission.physical,
+            leadership: data.mission.leadership
+          });
+        }
+      } catch {
+        // ignore; falls back to local state
+      }
+    }
+    loadMission();
+  }, [group, weekKey, setWeekMission]);
 
   const weekLabel = useMemo(() => {
     const [y, m, d] = weekKey.split("-").map(Number);
@@ -52,14 +79,31 @@ export default function DashboardPage() {
   const allChecked = Object.values(challenges).every(Boolean);
   const dayComplete = progress?.dayComplete ?? false;
 
-  function handleSaveWeekMission(e: React.FormEvent) {
+  async function handleSaveWeekMission(e: React.FormEvent) {
     e.preventDefault();
     const spiritual = (draftMission.spiritual || mission?.spiritual || "").trim();
     const physical = (draftMission.physical || mission?.physical || "").trim();
     const leadership = (draftMission.leadership || mission?.leadership || "").trim();
     if (!spiritual || !physical || !leadership) return;
-    setWeekMission({ spiritual, physical, leadership });
-    setDraftMission({ spiritual: "", physical: "", leadership: "" });
+    if (!group || !currentUser) return;
+    try {
+      await fetch("/api/missions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groupId: group.id,
+          weekKey,
+          spiritual,
+          physical,
+          leadership,
+          setByUserId: currentUser.id
+        })
+      });
+      setWeekMission({ spiritual, physical, leadership });
+      setDraftMission({ spiritual: "", physical: "", leadership: "" });
+    } catch {
+      // swallow for now; UI will still reflect local state
+    }
   }
 
   function onToggle(key: DisciplineKey) {
