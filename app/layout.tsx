@@ -3,7 +3,6 @@ import "./globals.css";
 import { ReactNode } from "react";
 import { NavBar } from "@/components/NavBar";
 import { AppProvider } from "@/components/AppProvider";
-import { AuthGate } from "@/components/AuthGate";
 
 export const metadata: Metadata = {
   title: "Daily Disciplines 2026",
@@ -25,9 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppProvider>
           <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-6 sm:px-6 lg:px-8">
             <NavBar />
-            <main className="mt-8 flex-1">
-              <AuthGate>{children}</AuthGate>
-            </main>
+            <main className="mt-8 flex-1">{children}</main>
             <footer className="mt-8 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500">
               Daily Disciplines 2026 · 30-day pilot
             </footer>
