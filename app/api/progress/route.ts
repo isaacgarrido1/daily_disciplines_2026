@@ -32,29 +32,23 @@ export async function POST(request: NextRequest) {
     const sql = getSql();
 
     // Ensure member exists (idempotent per group + name).
-    const memberRows = await sql<{
-      id: string;
-      streak: number;
-    }[]>`
+    const memberRows = (await sql`
       INSERT INTO group_members (id, group_id, name, role)
       VALUES (${makeId("member")}, ${groupId}, ${name}, 'member')
       ON CONFLICT (group_id, name)
       DO UPDATE SET name = EXCLUDED.name
       RETURNING id, streak
-    `;
+    `) as { id: string; streak: number }[];
 
     const member = memberRows[0];
 
     // Check existing progress for the date.
-    const existing = await sql<{
-      id: string;
-      day_complete: boolean;
-    }[]>`
+    const existing = (await sql`
       SELECT id, day_complete
       FROM daily_progress
       WHERE member_id = ${member.id} AND date_key = ${dateKey}
       LIMIT 1
-    `;
+    `) as { id: string; day_complete: boolean }[];
 
     if (existing[0]?.day_complete) {
       // Already complete; don't double-count streak.
@@ -70,12 +64,12 @@ export async function POST(request: NextRequest) {
     `;
 
     // Increment streak.
-    const updated = await sql<{ streak: number }[]>`
+    const updated = (await sql`
       UPDATE group_members
       SET streak = streak + 1
       WHERE id = ${member.id}
       RETURNING streak
-    `;
+    `) as { streak: number }[];
 
     return NextResponse.json({ ok: true, streak: updated[0].streak });
   } catch (err) {

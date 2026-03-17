@@ -24,17 +24,12 @@ export async function GET(request: NextRequest) {
     await ensureSchema();
     const sql = getSql();
 
-    const members = await sql<{
-      id: string;
-      name: string;
-      role: string;
-      streak: number;
-    }[]>`
+    const members = (await sql`
       SELECT id, name, role, streak
       FROM group_members
       WHERE group_id = ${groupId}
       ORDER BY created_at ASC
-    `;
+    `) as { id: string; name: string; role: string; streak: number }[];
 
     if (members.length === 0) {
       return NextResponse.json({ members: [] });
@@ -42,14 +37,11 @@ export async function GET(request: NextRequest) {
 
     const memberIds = members.map((m) => m.id);
 
-    const progressRows = await sql<{
-      member_id: string;
-      day_complete: boolean;
-    }[]>`
+    const progressRows = (await sql`
       SELECT member_id, day_complete
       FROM daily_progress
       WHERE group_id = ${groupId} AND date_key = ${dateKey} AND member_id IN ${sql(memberIds)}
-    `;
+    `) as { member_id: string; day_complete: boolean }[];
 
     const completeByMember = new Map<string, boolean>();
     for (const row of progressRows) {
@@ -95,18 +87,13 @@ export async function POST(request: NextRequest) {
     await ensureSchema();
     const sql = getSql();
 
-    const rows = await sql<{
-      id: string;
-      name: string;
-      role: string;
-      streak: number;
-    }[]>`
+    const rows = (await sql`
       INSERT INTO group_members (id, group_id, name, role)
       VALUES (${makeId("member")}, ${body.groupId}, ${body.name}, ${body.role})
       ON CONFLICT (group_id, name)
       DO UPDATE SET role = EXCLUDED.role
       RETURNING id, name, role, streak
-    `;
+    `) as { id: string; name: string; role: string; streak: number }[];
 
     const member = rows[0];
 
