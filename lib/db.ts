@@ -61,6 +61,29 @@ export async function ensureSchema(): Promise<void> {
       `;
       await sql`CREATE INDEX IF NOT EXISTS idx_weekly_missions_group_week ON weekly_missions(group_id, week_key)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_comments_group ON comments(group_id)`;
+      await sql`
+        CREATE TABLE IF NOT EXISTS group_members (
+          id TEXT PRIMARY KEY,
+          group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          role TEXT NOT NULL,
+          streak INTEGER NOT NULL DEFAULT 0,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE (group_id, name)
+        )
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS daily_progress (
+          id TEXT PRIMARY KEY,
+          member_id TEXT NOT NULL REFERENCES group_members(id) ON DELETE CASCADE,
+          group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+          date_key TEXT NOT NULL,
+          day_complete BOOLEAN NOT NULL DEFAULT FALSE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE (member_id, date_key)
+        )
+      `;
+      await sql`CREATE INDEX IF NOT EXISTS idx_daily_progress_group_date ON daily_progress(group_id, date_key)`;
     })();
   }
   await schemaPromise;

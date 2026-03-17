@@ -1,12 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/Card";
 import { useApp } from "@/components/AppProvider";
+
+type RemoteMember = {
+  id: string;
+  name: string;
+  role: string;
+  streak: number;
+  todayComplete: boolean;
+};
 
 export default function SmallGroupPage() {
   const { state, currentUser, group, dateKey, addComment } = useApp();
   const [body, setBody] = useState("");
+  const [members, setMembers] = useState<RemoteMember[]>([]);
+
+  useEffect(() => {
+    async function loadMembers() {
+      if (!group) {
+        setMembers([]);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/group-members?groupId=${encodeURIComponent(
+            group.id
+          )}&dateKey=${encodeURIComponent(dateKey)}`
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { members?: RemoteMember[] };
+        setMembers(data.members ?? []);
+      } catch {
+        // ignore; fall back to no remote members
+      }
+    }
+    loadMembers();
+  }, [group, dateKey]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -14,16 +45,6 @@ export default function SmallGroupPage() {
     addComment(body);
     setBody("");
   }
-
-  const usersInGroup = group
-    ? state.users.filter((u) => u.groupId === group.id)
-    : [];
-
-  const progressByUser = new Map(
-    state.progress
-      .filter((p) => p.dateKey === dateKey)
-      .map((p) => [p.userId, p])
-  );
 
   const comments = group
     ? state.comments.filter((c) => c.groupId === group.id)
@@ -45,15 +66,14 @@ export default function SmallGroupPage() {
           </div>
 
           <ul className="divide-y divide-slate-800 text-sm">
-            {usersInGroup.map((user) => {
-              const p = progressByUser.get(user.id);
-              const complete = p?.dayComplete ?? false;
+            {members.map((member) => {
+              const complete = member.todayComplete;
               return (
               <li
-                key={user.id}
+                key={member.id}
                 className="grid grid-cols-3 items-center px-3 py-2"
               >
-                <div className="font-medium text-slate-800 dark:text-slate-100">{user.name}</div>
+                <div className="font-medium text-slate-800 dark:text-slate-100">{member.name}</div>
                 <div className="text-center text-xs">
                   {complete ? (
                     <span className="rounded-full border border-green-700/60 bg-green-900/30 px-2 py-0.5 text-[11px] font-semibold text-green-300">
@@ -66,7 +86,7 @@ export default function SmallGroupPage() {
                   )}
                 </div>
                 <div className="text-center text-sm font-semibold text-accent">
-                  {user.streak}
+                  {member.streak}
                 </div>
               </li>
               );

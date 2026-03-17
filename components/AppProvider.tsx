@@ -306,6 +306,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!allDone || p.dayComplete) return prev;
         p.dayComplete = true;
         draft.users = draft.users.map((u) => (u.id === user.id ? { ...u, streak: u.streak + 1 } : u));
+
+        // Fire-and-forget server sync so Small Group tab stays in sync across devices.
+        const g = getGroupForUser(draft, user);
+        if (g) {
+          void fetch("/api/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ groupId: g.id, name: user.name, dateKey })
+          }).catch(() => {
+            // ignore; local state still reflects completion
+          });
+        }
+
         return draft;
       });
     }
