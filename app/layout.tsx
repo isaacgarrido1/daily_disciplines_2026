@@ -22,10 +22,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="app-shell">
         <AppProvider>
-          <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+          <div className="app-padding-x mx-auto flex min-h-screen w-full max-w-5xl min-w-0 flex-col py-5 sm:py-6 lg:py-8">
             <NavBar />
-            <main className="mt-8 flex-1">{children}</main>
-            <footer className="mt-8 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500">
+            <main className="mt-6 min-w-0 flex-1 sm:mt-8">{children}</main>
+            <footer className="mt-8 border-t border-slate-200 pt-4 text-center text-xs text-slate-500 sm:text-left dark:border-slate-800 dark:text-slate-500">
               Daily Disciplines 2026 · 30-day pilot
             </footer>
           </div>

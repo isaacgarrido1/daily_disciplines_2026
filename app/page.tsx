@@ -114,13 +114,15 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <ScriptureOfTheDay />
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-500">
             Today&apos;s Date
           </p>
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">{todayLabel}</p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">
+          <p className="text-base font-semibold text-slate-900 sm:text-lg dark:text-slate-50">
+            {todayLabel}
+          </p>
+          <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-500">
             {group ? (
               <>
                 Group: <span className="text-slate-600 dark:text-slate-300">{group.name}</span>
@@ -131,8 +133,8 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
+        <div className="flex min-w-0 flex-col gap-3 xs:flex-row xs:flex-wrap xs:items-center sm:gap-4">
+          <div className="shrink-0">
             <p className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-500">
               Discipline Streak
             </p>
@@ -140,7 +142,7 @@ export default function DashboardPage() {
               {currentUser?.streak ?? 0} days
             </p>
           </div>
-          <div className="rounded-md border border-green-700/40 bg-green-100 px-3 py-2 text-xs text-green-800 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200">
+          <div className="min-w-0 max-w-full rounded-md border border-green-700/40 bg-green-100 px-3 py-2.5 text-xs leading-snug text-green-800 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200">
             Consistency over perfection. One day at a time.
           </div>
         </div>
@@ -161,7 +163,7 @@ export default function DashboardPage() {
           <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/40">
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-slate-400 bg-white text-accent dark:border-slate-600 dark:bg-slate-900"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-400 bg-white text-accent dark:border-slate-600 dark:bg-slate-900"
               checked={challenges.spiritual}
               onChange={() => onToggle("spiritual")}
             />
@@ -169,7 +171,7 @@ export default function DashboardPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Spiritual
               </p>
-              <p className="text-sm text-slate-800 dark:text-slate-100">
+              <p className="break-words text-sm text-slate-800 dark:text-slate-100">
                 {mission?.spiritual ?? "No goals set for this week yet."}
               </p>
             </div>
@@ -178,7 +180,7 @@ export default function DashboardPage() {
           <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/40">
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-slate-400 bg-white text-accent dark:border-slate-600 dark:bg-slate-900"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-400 bg-white text-accent dark:border-slate-600 dark:bg-slate-900"
               checked={challenges.physical}
               onChange={() => onToggle("physical")}
             />
@@ -186,7 +188,7 @@ export default function DashboardPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Physical
               </p>
-              <p className="text-sm text-slate-800 dark:text-slate-100">
+              <p className="break-words text-sm text-slate-800 dark:text-slate-100">
                 {mission?.physical ?? "No goals set for this week yet."}
               </p>
             </div>
@@ -195,7 +197,7 @@ export default function DashboardPage() {
           <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/40">
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-slate-400 bg-white text-accent dark:border-slate-600 dark:bg-slate-900"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-400 bg-white text-accent dark:border-slate-600 dark:bg-slate-900"
               checked={challenges.leadership}
               onChange={() => onToggle("leadership")}
             />
@@ -203,7 +205,7 @@ export default function DashboardPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Leadership
               </p>
-              <p className="text-sm text-slate-800 dark:text-slate-100">
+              <p className="break-words text-sm text-slate-800 dark:text-slate-100">
                 {mission?.leadership ?? "No goals set for this week yet."}
               </p>
             </div>
@@ -215,10 +217,10 @@ export default function DashboardPage() {
             type="button"
             onClick={markDayComplete}
             disabled={!currentUser || !allChecked || dayComplete}
-            className={`w-full rounded-md px-4 py-2 text-sm font-semibold sm:w-auto ${
+            className={`inline-flex min-h-touch w-full items-center justify-center rounded-md px-4 py-2.5 text-base font-semibold sm:w-auto sm:py-2 sm:text-sm ${
               !currentUser || !allChecked || dayComplete
                 ? "cursor-not-allowed border border-slate-300 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-900/40"
-                : "border border-accent/40 bg-accent/90 text-slate-950 hover:bg-accent"
+                : "border border-accent/40 bg-accent/90 text-slate-950 hover:bg-accent dark:text-slate-950"
             }`}
           >
             {dayComplete ? "Day Marked Complete" : "Mark Day Complete"}
@@ -249,8 +251,9 @@ export default function DashboardPage() {
                 onChange={(e) =>
                   setDraftMission((p) => ({ ...p, spiritual: e.target.value }))
                 }
-                className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="form-input mt-2"
                 placeholder={mission?.spiritual ?? "Enter this week’s spiritual goal"}
+                autoComplete="off"
               />
             </div>
             <div>
@@ -262,8 +265,9 @@ export default function DashboardPage() {
                 onChange={(e) =>
                   setDraftMission((p) => ({ ...p, physical: e.target.value }))
                 }
-                className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="form-input mt-2"
                 placeholder={mission?.physical ?? "Enter this week’s physical goal"}
+                autoComplete="off"
               />
             </div>
             <div>
@@ -275,16 +279,13 @@ export default function DashboardPage() {
                 onChange={(e) =>
                   setDraftMission((p) => ({ ...p, leadership: e.target.value }))
                 }
-                className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="form-input mt-2"
                 placeholder={mission?.leadership ?? "Enter this week’s leadership goal"}
+                autoComplete="off"
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-md border border-accent/40 bg-accent/90 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-accent sm:w-auto dark:text-slate-950"
-              disabled={!group}
-            >
+            <button type="submit" className="btn-primary" disabled={!group}>
               Save Goals for This Week
             </button>
           </form>

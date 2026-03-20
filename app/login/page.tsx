@@ -39,7 +39,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => handleSelect(user.id)}
-                    className={`w-full rounded-md border px-3 py-3 text-left text-sm transition-colors ${
+                    className={`min-h-touch w-full rounded-md border px-3 py-3 text-left text-base transition-colors sm:text-sm ${
                       isCurrent
                         ? "border-accent/50 bg-accent/10 font-medium text-slate-900 dark:border-accent/50 dark:bg-accent/10 dark:text-slate-100"
                         : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900/40"

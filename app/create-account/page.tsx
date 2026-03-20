@@ -101,16 +101,18 @@ export default function CreateAccountPage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+              className="form-input mt-2"
               placeholder="e.g., Ben"
+              autoComplete="name"
+              autoCapitalize="words"
               required
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 xs:flex-row xs:flex-wrap">
             <button
               type="button"
-              className={`rounded-md border px-3 py-2 text-sm font-semibold ${
+              className={`min-h-touch flex-1 rounded-md border px-3 py-2.5 text-base font-semibold sm:min-h-0 sm:py-2 sm:text-sm ${
                 mode === "join"
                   ? "border-slate-300 bg-slate-100 text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
                   : "border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400 dark:hover:text-slate-100"
@@ -121,7 +123,7 @@ export default function CreateAccountPage() {
             </button>
             <button
               type="button"
-              className={`rounded-md border px-3 py-2 text-sm font-semibold ${
+              className={`min-h-touch flex-1 rounded-md border px-3 py-2.5 text-base font-semibold sm:min-h-0 sm:py-2 sm:text-sm ${
                 mode === "create"
                   ? "border-slate-300 bg-slate-100 text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
                   : "border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400 dark:hover:text-slate-100"
@@ -140,8 +142,12 @@ export default function CreateAccountPage() {
               <input
                 value={groupCode}
                 onChange={(e) => setGroupCode(e.target.value)}
-                className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="form-input mt-2"
                 placeholder="Enter code from your leader"
+                autoComplete="one-time-code"
+                inputMode="text"
+                autoCapitalize="characters"
+                spellCheck={false}
                 required
               />
             </div>
@@ -153,17 +159,14 @@ export default function CreateAccountPage() {
               <input
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
-                className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="form-input mt-2"
                 placeholder="e.g., Iron Sharpening Iron"
+                autoComplete="organization"
               />
             </div>
           )}
 
-          <button
-            type="submit"
-            className="w-full rounded-md border border-accent/40 bg-accent/90 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-accent disabled:opacity-70"
-            disabled={loading}
-          >
+          <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? "Please wait…" : mode === "join" ? "Join as member" : "Create group (I'm the leader)"}
           </button>
         </form>

@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "375px"
+      },
       colors: {
         background: "#020617",
         surface: "#030712",
@@ -15,6 +18,12 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["system-ui", "ui-sans-serif", "sans-serif"]
+      },
+      minHeight: {
+        touch: "44px"
+      },
+      minWidth: {
+        touch: "44px"
       }
     }
   },

@@ -19,11 +19,7 @@ export default function Error({
       <p className="max-w-md text-center text-sm text-slate-500 dark:text-slate-400">
         {error.message || "An unexpected error occurred."}
       </p>
-      <button
-        type="button"
-        onClick={reset}
-        className="rounded-md border border-accent/40 bg-accent/90 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-accent"
-      >
+      <button type="button" onClick={reset} className="btn-primary">
         Try again
       </button>
     </div>

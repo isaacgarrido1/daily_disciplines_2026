@@ -10,6 +10,11 @@
   color-scheme: dark;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html,
 body {
   padding: 0;
@@ -19,6 +24,7 @@ body {
 
 body {
   @apply bg-white font-sans antialiased text-slate-900 dark:bg-background dark:text-slate-100;
+  overflow-x: clip;
 }
 
 *,
@@ -28,6 +34,50 @@ body {
 }
 
 .app-shell {
-  @apply min-h-screen bg-white dark:bg-background;
+  @apply min-h-screen min-w-0 bg-white dark:bg-background;
+}
+
+/* Mobile-first: 16px on inputs avoids iOS zoom on focus; slightly smaller from sm up */
+@layer components {
+  .form-input {
+    @apply w-full max-w-full min-h-touch rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base leading-normal text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 sm:py-2 sm:text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+
+  .form-textarea {
+    @apply w-full max-w-full min-h-[5.5rem] resize-y rounded-md border border-slate-300 bg-white px-3 py-2.5 text-base leading-normal text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 sm:py-2 sm:text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-touch w-full items-center justify-center rounded-md border border-accent/40 bg-accent/90 px-4 py-2.5 text-base font-semibold text-slate-950 transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:py-2 sm:text-sm dark:text-slate-950;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-touch w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-base font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:py-2 sm:text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
+  }
+
+  .touch-target {
+    @apply min-h-touch min-w-touch;
+  }
+}
+
+@layer utilities {
+  .app-padding-x {
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  @media (min-width: 640px) {
+    .app-padding-x {
+      padding-left: max(1rem, env(safe-area-inset-left, 0px));
+      padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .app-padding-x {
+      padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+      padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+    }
+  }
 }
 

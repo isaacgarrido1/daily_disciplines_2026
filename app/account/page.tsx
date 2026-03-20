@@ -79,18 +79,22 @@ export default function AccountPage() {
               </dt>
               <dd className="mt-0.5">
                 {isLeader ? (
-                  <form onSubmit={handleSaveGroupName} className="flex items-center gap-2">
+                  <form
+                    onSubmit={handleSaveGroupName}
+                    className="flex flex-col gap-2 sm:flex-row sm:items-stretch"
+                  >
                     <input
                       type="text"
                       value={groupNameDraft}
                       onChange={(e) => setGroupNameDraft(e.target.value)}
                       placeholder="Group name"
-                      className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-accent/70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                      autoComplete="organization"
+                      className="form-input min-w-0 flex-1"
                     />
                     <button
                       type="submit"
                       disabled={!groupNameDraft.trim() || groupNameDraft.trim() === group.name}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-accent/40 bg-accent text-slate-950 hover:bg-accent/90 disabled:opacity-50"
+                      className="inline-flex min-h-touch w-full shrink-0 items-center justify-center rounded-md border border-accent/40 bg-accent px-4 text-slate-950 hover:bg-accent/90 disabled:opacity-50 sm:w-11 sm:px-0"
                       aria-label="Save group name"
                     >
                       {groupNameSaved ? (
@@ -117,9 +121,9 @@ export default function AccountPage() {
             Share this code with others so they can join your small group when
             they create an account.
           </p>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <span
-              className="inline-block rounded-md border-2 border-dashed border-slate-300 bg-slate-100 px-4 py-2 font-mono text-xl font-bold tracking-wider text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="inline-block max-w-full break-all rounded-md border-2 border-dashed border-slate-300 bg-slate-100 px-3 py-2 font-mono text-lg font-bold tracking-wider text-slate-900 xs:text-xl dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               aria-label={`Join code: ${group.code}`}
             >
               {group.code}
@@ -127,7 +131,7 @@ export default function AccountPage() {
             <button
               type="button"
               onClick={copyCode}
-              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="btn-secondary w-full sm:w-auto"
             >
               {copied ? "Copied!" : "Copy code"}
             </button>
@@ -141,11 +145,11 @@ export default function AccountPage() {
             <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Theme
             </label>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setTheme("light")}
-                className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                className={`min-h-touch rounded-md border px-4 py-2.5 text-base font-medium sm:min-h-0 sm:py-2 sm:text-sm ${
                   theme === "light"
                     ? "border-accent/50 bg-accent/20 text-slate-900 dark:border-accent/50 dark:bg-accent/20 dark:text-slate-100"
                     : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600"
@@ -156,7 +160,7 @@ export default function AccountPage() {
               <button
                 type="button"
                 onClick={() => setTheme("dark")}
-                className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                className={`min-h-touch rounded-md border px-4 py-2.5 text-base font-medium sm:min-h-0 sm:py-2 sm:text-sm ${
                   theme === "dark"
                     ? "border-accent/50 bg-accent/20 text-slate-900 dark:border-accent/50 dark:bg-accent/20 dark:text-slate-100"
                     : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600"

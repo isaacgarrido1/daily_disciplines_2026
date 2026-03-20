@@ -49,7 +49,7 @@ export function ScriptureOfTheDay() {
         </p>
       )}
       {!loading && !error && scripture && (
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-slate-100">
+        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100 max-w-full">
           {scripture.text}
         </p>
       )}

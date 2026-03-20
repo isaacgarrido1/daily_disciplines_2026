@@ -7,10 +7,7 @@ export default function NotFound() {
       <p className="text-sm text-slate-500 dark:text-slate-400">
         The page you’re looking for doesn’t exist or was moved.
       </p>
-      <Link
-        href="/"
-        className="rounded-md border border-accent/40 bg-accent/90 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-accent"
-      >
+      <Link href="/" className="btn-primary">
         Back to dashboard
       </Link>
     </div>

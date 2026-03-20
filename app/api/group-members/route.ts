@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const progressRows = (await sql`
       SELECT member_id, day_complete
       FROM daily_progress
-      WHERE group_id = ${groupId} AND date_key = ${dateKey} AND member_id IN ${sql(memberIds)}
+      WHERE group_id = ${groupId} AND date_key = ${dateKey} AND member_id = ANY(${memberIds})
     `) as { member_id: string; day_complete: boolean }[];
 
     const completeByMember = new Map<string, boolean>();
