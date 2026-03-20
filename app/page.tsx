@@ -151,7 +151,7 @@ export default function DashboardPage() {
       <Card title="Daily Challenges">
         {!currentUser ? (
           <div className="rounded-md border border-slate-200 bg-slate-100 p-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
-            <Link href="/create-account" className="text-slate-800 underline dark:text-slate-100">Create an account</Link> or <Link href="/login" className="text-slate-800 underline dark:text-slate-100">log in</Link> to begin.
+            <Link href="/signup" className="text-slate-800 underline dark:text-slate-100">Sign up</Link> or <Link href="/login" className="text-slate-800 underline dark:text-slate-100">log in</Link> to begin.
           </div>
         ) : null}
 

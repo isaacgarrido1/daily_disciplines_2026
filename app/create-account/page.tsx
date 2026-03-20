@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { useApp } from "@/components/AppProvider";
+import { useAuth } from "@/components/AuthProvider";
 
 type Mode = "join" | "create";
 
 export default function CreateAccountPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { signUp } = useApp();
   const [name, setName] = useState("");
   const [mode, setMode] = useState<Mode>("join");
@@ -21,8 +23,13 @@ export default function CreateAccountPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!user) {
+      setError("You must be signed in.");
+      return;
+    }
     setLoading(true);
     try {
+      const authUserId = user.id;
       if (mode === "join") {
         const res = await fetch(
           `/api/groups/join?code=${encodeURIComponent(groupCode.trim())}`
@@ -38,6 +45,7 @@ export default function CreateAccountPage() {
           code: string;
         };
         signUp({
+          authUserId,
           name: name.trim(),
           role: "member",
           serverGroup: {
@@ -62,6 +70,7 @@ export default function CreateAccountPage() {
           code: string;
         };
         signUp({
+          authUserId,
           name: name.trim(),
           role: "leader",
           serverGroup: {
@@ -81,7 +90,7 @@ export default function CreateAccountPage() {
 
   return (
     <div className="space-y-6">
-      <Card title="Create an account">
+      <Card title="Join or create a group">
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
           Enter your name and either join an existing small group with a code, or
           create a new group (you’ll be the leader). Members cannot set weekly goals.

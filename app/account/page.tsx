@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Card } from "@/components/Card";
 import { useApp } from "@/components/AppProvider";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function AccountPage() {
+  const { user: authUser, profile, loading: authLoading } = useAuth();
   const { currentUser, group, theme, setTheme, setGroupName } = useApp();
   const [copied, setCopied] = useState(false);
   const [groupNameDraft, setGroupNameDraft] = useState(group?.name ?? "");
@@ -22,19 +23,12 @@ export default function AccountPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  if (!currentUser) {
+  if (authLoading || !currentUser) {
     return (
       <div className="space-y-6">
         <Card title="Account">
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            <Link href="/login" className="text-accent hover:underline">
-            Log in
-            </Link>{" "}
-            or{" "}
-            <Link href="/create-account" className="text-accent hover:underline">
-              create an account
-            </Link>{" "}
-            to view settings and preferences.
+            {authLoading ? "Loading…" : "Loading your profile…"}
           </p>
         </Card>
       </div>
@@ -61,7 +55,15 @@ export default function AccountPage() {
               Name
             </dt>
             <dd className="mt-0.5 text-slate-800 dark:text-slate-100">
-              {currentUser.name}
+              {profile?.display_name?.trim() || currentUser.name}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Email
+            </dt>
+            <dd className="mt-0.5 break-all text-slate-800 dark:text-slate-100">
+              {authUser?.email ?? "—"}
             </dd>
           </div>
           <div>
@@ -118,8 +120,8 @@ export default function AccountPage() {
       {isLeader && group ? (
         <Card title="Group join code">
           <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
-            Share this code with others so they can join your small group when
-            they create an account.
+            Share this code with others so they can join your small group after
+            they sign up.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <span

@@ -1,73 +1,125 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/Card";
-import { useApp } from "@/components/AppProvider";
+import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+function mapAuthError(message: string): string {
+  if (/invalid login credentials|invalid email or password/i.test(message)) {
+    return "Invalid email or password.";
+  }
+  if (/email not confirmed/i.test(message)) {
+    return "Please confirm your email before signing in.";
+  }
+  return message;
+}
+
+function LoginForm() {
   const router = useRouter();
-  const { state, currentUser, setCurrentUserId } = useApp();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") ?? "/";
+  const errParam = searchParams.get("error");
 
-  function handleSelect(userId: string) {
-    setCurrentUserId(userId);
-    router.push("/");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(
+    errParam === "auth" ? "Could not complete sign-in. Try again." : null
+  );
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: signErr } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      });
+      if (signErr) {
+        setError(mapAuthError(signErr.message));
+        return;
+      }
+      router.replace(redirect.startsWith("/") ? redirect : "/");
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="space-y-6">
       <Card title="Log in">
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
-          Select your account to continue. Your data is stored on this device.
+          Sign in with your email and password.
         </p>
 
-        {state.users.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            No accounts yet.{" "}
-            <Link href="/create-account" className="text-accent hover:underline">
-              Create an account
-            </Link>{" "}
-            first.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {state.users.map((user) => {
-              const group = state.groups.find((g) => g.id === user.groupId);
-              const isCurrent = currentUser?.id === user.id;
-              return (
-                <li key={user.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(user.id)}
-                    className={`min-h-touch w-full rounded-md border px-3 py-3 text-left text-base transition-colors sm:text-sm ${
-                      isCurrent
-                        ? "border-accent/50 bg-accent/10 font-medium text-slate-900 dark:border-accent/50 dark:bg-accent/10 dark:text-slate-100"
-                        : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900/40"
-                    }`}
-                  >
-                    <span className="font-medium">{user.name}</span>
-                    {user.role === "leader" ? (
-                      <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">Leader</span>
-                    ) : null}
-                    {group ? (
-                      <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
-                        {group.name}
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error ? (
+            <div className="rounded-md border border-rose-900/50 bg-rose-900/20 px-3 py-2 text-sm text-rose-200">
+              {error}
+            </div>
+          ) : null}
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Email
+            </label>
+            <input
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="form-input mt-2"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Password
+            </label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-input mt-2"
+              required
+              minLength={6}
+            />
+          </div>
+
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
 
         <p className="mt-4 text-xs text-slate-500 dark:text-slate-500">
-          Need an account?{" "}
-          <Link href="/create-account" className="text-accent hover:underline">
-            Create an account
+          No account?{" "}
+          <Link href="/signup" className="text-accent hover:underline">
+            Sign up
           </Link>
         </p>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-surface/80">
+          Loading…
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

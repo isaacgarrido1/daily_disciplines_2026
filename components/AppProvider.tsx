@@ -31,10 +31,13 @@ import {
   saveState,
   seedState
 } from "@/lib/appState";
+import { useAuth } from "@/components/AuthProvider";
 
 type AppActions = {
   setCurrentUserId: (userId: string) => void;
   signUp: (args: {
+    /** Must match the signed-in Supabase user id */
+    authUserId: string;
     name: string;
     role: Role;
     groupCode?: string;
@@ -108,6 +111,7 @@ function getStoredTheme(): Theme {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user: authUser, profile, loading: authLoading } = useAuth();
   const [state, setState] = useState<AppState>(() => seedState());
   const [theme, setThemeState] = useState<Theme>("dark");
   const [bibleStreakState, setBibleStreakState] = useState<StreakState>({ streak: 0, lastDateKey: "" });
@@ -141,6 +145,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!authUser) {
+      setState((prev) => ({ ...prev, currentUserId: null }));
+      return;
+    }
+    const uid = authUser.id;
+    const displayName =
+      profile?.display_name?.trim() ||
+      (authUser.user_metadata as { display_name?: string })?.display_name?.trim() ||
+      authUser.email?.split("@")[0] ||
+      "User";
+    setState((prev) => {
+      const idx = prev.users.findIndex((u) => u.id === uid);
+      let nextUsers = prev.users;
+      if (idx === -1) {
+        nextUsers = [
+          {
+            id: uid,
+            name: displayName,
+            role: "member",
+            groupId: "",
+            streak: 0
+          },
+          ...prev.users
+        ];
+      } else {
+        nextUsers = prev.users.map((u, i) =>
+          i === idx ? { ...u, name: displayName } : u
+        );
+      }
+      return { ...prev, currentUserId: uid, users: nextUsers };
+    });
+  }, [authLoading, authUser, profile]);
 
   const dateKey = useMemo(() => getDateKey(new Date()), []);
   const weekKey = useMemo(() => getWeekKey(dateKey), [dateKey]);
@@ -183,6 +222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     function signUp(args: {
+      authUserId: string;
       name: string;
       role: Role;
       groupCode?: string;
@@ -192,6 +232,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const name = args.name.trim();
       if (!name) {
         throw new Error("Name is required.");
+      }
+      if (!args.authUserId) {
+        throw new Error("Not authenticated.");
       }
 
       const groupCode = (args.groupCode ?? "").trim();
@@ -232,13 +275,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         const user: User = {
-          id: helpers.id("user"),
+          id: args.authUserId,
           name,
           role: args.role,
           groupId: group.id,
           streak: 0
         };
-        nextUsers = [user, ...nextUsers];
+        const withoutDup = nextUsers.filter((u) => u.id !== args.authUserId);
+        nextUsers = [user, ...withoutDup];
 
         if (args.role === "leader") {
           nextGroups = nextGroups.map((g) =>

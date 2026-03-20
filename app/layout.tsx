@@ -3,6 +3,7 @@ import "./globals.css";
 import { ReactNode } from "react";
 import { NavBar } from "@/components/NavBar";
 import { AppProvider } from "@/components/AppProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "Daily Disciplines 2026",
@@ -21,7 +22,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body className="app-shell">
-        <AppProvider>
+        <AuthProvider>
+          <AppProvider>
           <div className="app-padding-x mx-auto flex min-h-screen w-full max-w-5xl min-w-0 flex-col py-5 sm:py-6 lg:py-8">
             <NavBar />
             <main className="mt-6 min-w-0 flex-1 sm:mt-8">{children}</main>
@@ -29,7 +31,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               Daily Disciplines 2026 · 30-day pilot
             </footer>
           </div>
-        </AppProvider>
+          </AppProvider>
+        </AuthProvider>
       </body>
     </html>
   );

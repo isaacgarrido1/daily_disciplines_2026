@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createPublicClient } from "@/lib/supabase/public";
+
+const supabase = createPublicClient();
 import { getWeekKey } from "@/lib/appState";
 
 function makeId(prefix: string) {
