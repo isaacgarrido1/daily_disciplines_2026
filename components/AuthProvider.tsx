@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session, User, SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types/profile";
 
@@ -25,7 +25,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function fetchProfile(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   userId: string
 ): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -45,11 +45,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  /** Created only in useEffect so SSR / `next build` prerender never calls getSupabaseUrl(). */
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
-  const supabase = useMemo(() => createClient(), []);
+  useEffect(() => {
+    try {
+      setSupabase(createClient());
+    } catch {
+      setLoading(false);
+    }
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     const uid = session?.user?.id;
+    if (!supabase) {
+      setProfile(null);
+      return;
+    }
     if (!uid) {
       setProfile(null);
       return;
@@ -59,16 +71,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session?.user?.id, supabase]);
 
   useEffect(() => {
+    if (!supabase) return;
+    const client = supabase;
+
     let cancelled = false;
 
     async function init() {
       const {
         data: { session: s }
-      } = await supabase.auth.getSession();
+      } = await client.auth.getSession();
       if (cancelled) return;
       setSession(s);
       if (s?.user) {
-        const p = await fetchProfile(supabase, s.user.id);
+        const p = await fetchProfile(client, s.user.id);
         if (!cancelled) setProfile(p);
       } else {
         setProfile(null);
@@ -80,10 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = client.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       if (newSession?.user) {
-        const p = await fetchProfile(supabase, newSession.user.id);
+        const p = await fetchProfile(client, newSession.user.id);
         setProfile(p);
       } else {
         setProfile(null);
@@ -98,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const signOut = useCallback(async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     setSession(null);
     setProfile(null);

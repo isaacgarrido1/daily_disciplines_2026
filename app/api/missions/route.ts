@@ -1,15 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient } from "@/lib/supabase/public";
-
-const supabase = createPublicClient();
 import { getWeekKey } from "@/lib/appState";
 
 function makeId(prefix: string) {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
+/** Lazy client: avoid calling getSupabaseUrl() at module load (breaks `next build` when env is unset during route collection). */
+function getSupabaseOrNull() {
+  try {
+    return createPublicClient();
+  } catch {
+    return null;
+  }
+}
+
 /** GET ?groupId=...&weekKey=... - fetch weekly mission for a group/week from Supabase. */
 export async function GET(request: NextRequest) {
+  const supabase = getSupabaseOrNull();
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Server misconfigured: missing Supabase environment variables." },
+      { status: 503 }
+    );
+  }
+
   const groupId = (request.nextUrl.searchParams.get("groupId") ?? "").trim();
   let weekKey = (request.nextUrl.searchParams.get("weekKey") ?? "").trim();
 
@@ -57,6 +72,14 @@ export async function GET(request: NextRequest) {
 
 /** POST - upsert weekly mission for a group/week into Supabase. */
 export async function POST(request: NextRequest) {
+  const supabase = getSupabaseOrNull();
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Server misconfigured: missing Supabase environment variables." },
+      { status: 503 }
+    );
+  }
+
   const body = (await request.json().catch(() => null)) as
     | {
         groupId?: string;

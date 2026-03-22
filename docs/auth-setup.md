@@ -4,6 +4,8 @@
 
 Set these in **Vercel** (Project → Settings → Environment Variables) and in a local **`.env.local`** (never commit secrets).
 
+The app can **build** on Vercel even if these are missing (no eager `getSupabaseUrl()` at import time). **Runtime** still needs `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for login, middleware, and `/api/missions`; without them you’ll get redirects, empty auth, or HTTP 503 from missions.
+
 | Variable | Required | Notes |
 |----------|----------|--------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Project URL from Supabase → Settings → API |
