@@ -24,9 +24,13 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(
-    errParam === "auth" ? "Could not complete sign-in. Try again." : null
-  );
+  const [error, setError] = useState<string | null>(() => {
+    if (errParam === "auth") return "Could not complete sign-in. Try again.";
+    if (errParam === "config")
+      return "Server configuration error: add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.";
+    if (errParam === "middleware") return "Authentication service error. Try again in a moment.";
+    return null;
+  });
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
