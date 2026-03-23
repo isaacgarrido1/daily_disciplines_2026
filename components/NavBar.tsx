@@ -61,9 +61,17 @@ export function NavBar() {
     <header className="border-b border-slate-200 pb-4 dark:border-slate-800">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl dark:text-slate-50">
-            Daily Disciplines
-          </h1>
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo-mark.svg"
+              alt="Daily Disciplines logo"
+              className="h-8 w-8 shrink-0 sm:h-9 sm:w-9"
+              aria-hidden
+            />
+            <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900 sm:text-xl dark:text-slate-50">
+              Daily Disciplines
+            </h1>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Spiritual · Physical · Leadership
           </p>
