@@ -68,14 +68,16 @@ export function NavBar() {
               className="h-8 w-8 shrink-0 sm:h-9 sm:w-9"
               aria-hidden
             />
-            <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900 sm:text-xl dark:text-slate-50">
+            <h1
+              className="min-w-0 truncate bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-base font-semibold tracking-[-0.03em] leading-none sm:text-xl dark:from-slate-50 dark:to-slate-200"
+            >
               Daily Disciplines
             </h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             Spiritual · Physical · Leadership
           </p>
-          <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-500">
+          <p className="mt-2 break-words text-[11px] leading-snug text-slate-600 dark:text-slate-300">
             {authLoading ? (
               "…"
             ) : user && currentUser ? (
