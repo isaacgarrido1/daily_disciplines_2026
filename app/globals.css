@@ -23,7 +23,7 @@ body {
 }
 
 body {
-  @apply bg-white font-sans antialiased text-slate-900 dark:bg-background dark:text-slate-100;
+  @apply bg-white antialiased text-slate-900 dark:bg-background dark:text-slate-100;
   overflow-x: clip;
 }
 

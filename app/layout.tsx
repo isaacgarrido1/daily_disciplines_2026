@@ -4,6 +4,12 @@ import { ReactNode } from "react";
 import { NavBar } from "@/components/NavBar";
 import { AppProvider } from "@/components/AppProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   title: "Daily Disciplines 2026",
@@ -21,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className="app-shell">
+      <body className={`app-shell ${inter.className}`}>
         <AuthProvider>
           <AppProvider>
           <div className="app-padding-x mx-auto flex min-h-screen w-full max-w-5xl min-w-0 flex-col py-5 sm:py-6 lg:py-8">
