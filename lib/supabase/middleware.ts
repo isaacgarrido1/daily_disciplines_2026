@@ -13,31 +13,7 @@ function readSupabaseEnv(): { url: string; key: string } | null {
   const key =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ??
     process.env.SUPABASE_ANON_KEY?.trim();
-  if (!url || !key) {
-    // #region agent log
-    if (!process.env.VERCEL) {
-      const data = {
-        hasNextPublicUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()),
-        hasServerUrl: Boolean(process.env.SUPABASE_URL?.trim()),
-        hasNextPublicKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()),
-        hasServerKey: Boolean(process.env.SUPABASE_ANON_KEY?.trim())
-      };
-      fetch("http://127.0.0.1:7921/ingest/71a9eabd-6470-4382-a48e-36910ca2ad0f", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b87bfa" },
-        body: JSON.stringify({
-          sessionId: "b87bfa",
-          hypothesisId: "H1",
-          location: "lib/supabase/middleware.ts:readSupabaseEnv",
-          message: "supabase env incomplete",
-          data,
-          timestamp: Date.now()
-        })
-      }).catch(() => {});
-    }
-    // #endregion
-    return null;
-  }
+  if (!url || !key) return null;
   return { url, key };
 }
 
