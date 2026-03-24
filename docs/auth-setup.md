@@ -12,6 +12,7 @@ The app can **build** on Vercel even if these are missing (no eager `getSupabase
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | `anon` `public` key (safe to expose in the browser) |
 | `SUPABASE_URL` | Optional | Server-only mirror of the URL if you prefer not to use `NEXT_PUBLIC_*` on the server |
 | `SUPABASE_ANON_KEY` | Optional | Server-only mirror of the anon key |
+| `NEXT_PUBLIC_SITE_URL` | Recommended on Vercel | Public site origin without a trailing slash (e.g. `https://your-domain.com`). Sign-up uses this for `emailRedirectTo` so confirmation links match **Authentication → URL configuration**. If unset, the server derives the origin from request headers. |
 
 The app resolves URL/key with **`NEXT_PUBLIC_*` first**, then `SUPABASE_*`. The **browser bundle** only includes `NEXT_PUBLIC_*`, so you must set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the client and middleware.
 
@@ -35,7 +36,7 @@ The app resolves URL/key with **`NEXT_PUBLIC_*` first**, then `SUPABASE_*`. The 
 
 4. **AppProvider** syncs the existing local dashboard state: when a Supabase session exists, it sets **`currentUserId`** to `auth.users.id` and merges a `User` entry so the rest of the app keeps working.
 
-5. **Email confirmation** (if enabled in Supabase): after the user clicks the link, they hit **`/auth/callback`** with a `code`; the route exchanges it for a session and sets cookies.
+5. **Email confirmation** (if enabled in Supabase): sign-up runs on **`POST /api/auth/signup`**, which sets `emailRedirectTo` to `{origin}/auth/callback` using **`NEXT_PUBLIC_SITE_URL`** or the request’s public host. After the user clicks the link, they hit **`/auth/callback`** with a `code`; the route exchanges it for a session and sets cookies.
 
 6. **Sign out** calls `supabase.auth.signOut()`; middleware then treats the user as logged out.
 

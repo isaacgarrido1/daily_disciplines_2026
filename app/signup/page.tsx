@@ -34,38 +34,51 @@ export default function SignupPage() {
     setSuccess(null);
     setLoading(true);
     try {
-      const supabase = createClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const { data, error: signErr } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: `${origin}/auth/callback`,
-          data: {
-            display_name: displayName.trim()
-          }
-        }
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          displayName: displayName.trim()
+        })
       });
 
-      if (signErr) {
-        setError(mapSignUpError(signErr.message));
+      const payload = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        session?: { access_token: string; refresh_token: string } | null;
+        user?: { id: string; email?: string | null } | null;
+      };
+
+      if (!res.ok) {
+        setError(mapSignUpError(payload.error ?? "Sign up failed."));
         return;
       }
 
-      if (data.session && data.user) {
-        const { error: profileErr } = await supabase.from("profiles").upsert(
-          {
-            id: data.user.id,
-            display_name: displayName.trim() || null
-          },
-          { onConflict: "id" }
-        );
-        if (profileErr) {
-          console.error("profile upsert", profileErr);
+      if (payload.session) {
+        const supabase = createClient();
+        const { error: sessionErr } = await supabase.auth.setSession({
+          access_token: payload.session.access_token,
+          refresh_token: payload.session.refresh_token
+        });
+        if (sessionErr) {
+          setError(mapSignUpError(sessionErr.message));
+          return;
         }
-      }
 
-      if (data.session) {
+        if (payload.user?.id) {
+          const { error: profileErr } = await supabase.from("profiles").upsert(
+            {
+              id: payload.user.id,
+              display_name: displayName.trim() || null
+            },
+            { onConflict: "id" }
+          );
+          if (profileErr) {
+            console.error("profile upsert", profileErr);
+          }
+        }
+
         setSuccess("Account created. Redirecting…");
         router.replace("/");
         router.refresh();
