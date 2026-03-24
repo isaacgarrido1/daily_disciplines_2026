@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/Card";
+import { OAuthSocialButtons } from "@/components/auth/OAuthSocialButtons";
 import { createClient } from "@/lib/supabase/client";
 
 function mapSignUpError(message: string): string {
@@ -97,9 +98,22 @@ export default function SignupPage() {
     <div className="space-y-6">
       <Card title="Sign up">
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
-          Create an account with email and password. You can join or create a small group
-          after signing in.
+          Create an account with Google, Apple, or email and password. You can join or create a
+          small group after signing in.
         </p>
+
+        <OAuthSocialButtons redirectPath="/" />
+
+        <div className="relative py-2">
+          <div className="absolute inset-0 flex items-center" aria-hidden>
+            <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase tracking-wide">
+            <span className="bg-slate-50/80 px-2 text-slate-500 dark:bg-surface/80 dark:text-slate-400">
+              Or with email
+            </span>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error ? (

@@ -23,6 +23,17 @@ The app resolves URL/key with **`NEXT_PUBLIC_*` first**, then `SUPABASE_*`. The 
 3. Confirm **Authentication → URL configuration** includes your site URL and redirect URLs, e.g.:
    - Site URL: `https://your-app.vercel.app`
    - Redirect URLs: `https://your-app.vercel.app/auth/callback`, `http://localhost:3000/auth/callback`
+4. If you use **Google** or **Apple** sign-in, also run `supabase/migrations/002_profiles_oauth_names.sql` (or rely on an updated `001_profiles.sql`) so new users get `display_name` from OAuth metadata (`full_name` / `name`), not only `display_name`.
+
+## Google and Apple (OAuth / SSO)
+
+1. In **Supabase → Authentication → Providers**, enable **Google** and/or **Apple** and paste the credentials from each vendor’s console.
+2. **Redirect URI at the provider** must be Supabase’s callback, not your app URL:
+   - Use exactly: `https://<your-project-ref>.supabase.co/auth/v1/callback` (from **Supabase → Authentication → Providers**; shown in the setup instructions for each provider).
+3. Your app’s **`/auth/callback`** must still appear under **Authentication → URL configuration → Redirect URLs** (same list as email magic links). Set **`NEXT_PUBLIC_SITE_URL`** to your canonical origin so the browser builds the same redirect URL in production and on Vercel previews if needed.
+4. **Google**: In [Google Cloud Console](https://console.cloud.google.com/) create OAuth client credentials (Web application) and add the Supabase redirect URI above. Copy Client ID and Client Secret into Supabase.
+5. **Apple**: In Apple Developer, create a **Services ID** (Sign in with Apple), a **Key**, and configure return URLs with Supabase’s `https://<project>.supabase.co/auth/v1/callback`. Enter Services ID, Key ID, Team ID, and private key in Supabase. Apple sign-in on the web has extra steps; follow Supabase’s Apple provider docs if anything fails.
+6. OAuth uses the **browser** `signInWithOAuth` call (not a custom API route) so the PKCE flow and session cookies work with `@supabase/ssr`.
 
 ## How the auth flow works
 
@@ -38,7 +49,9 @@ The app resolves URL/key with **`NEXT_PUBLIC_*` first**, then `SUPABASE_*`. The 
 
 5. **Email confirmation** (if enabled in Supabase): sign-up runs on **`POST /api/auth/signup`**, which sets `emailRedirectTo` to `{origin}/auth/callback` using **`NEXT_PUBLIC_SITE_URL`** or the request’s public host. After the user clicks the link, they hit **`/auth/callback`** with a `code`; the route exchanges it for a session and sets cookies.
 
-6. **Sign out** calls `supabase.auth.signOut()`; middleware then treats the user as logged out.
+6. **Google / Apple**: from **`/login`** or **`/signup`**, the app calls **`signInWithOAuth`** with `redirectTo` set to `{NEXT_PUBLIC_SITE_URL or origin}/auth/callback?next=…`. The user returns with a `code`; **`/auth/callback`** exchanges it for a session (same as email). Provider errors redirect to **`/login?error=oauth`**.
+
+7. **Sign out** calls `supabase.auth.signOut()`; middleware then treats the user as logged out.
 
 ## Security notes
 

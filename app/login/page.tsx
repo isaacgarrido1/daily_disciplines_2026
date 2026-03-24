@@ -4,7 +4,9 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/Card";
+import { OAuthSocialButtons } from "@/components/auth/OAuthSocialButtons";
 import { createClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 
 function mapAuthError(message: string): string {
   if (/invalid login credentials|invalid email or password/i.test(message)) {
@@ -20,12 +22,15 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";
+  const safeRedirect = safeNextPath(redirect);
   const errParam = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(() => {
     if (errParam === "auth") return "Could not complete sign-in. Try again.";
+    if (errParam === "oauth")
+      return "Google or Apple sign-in was cancelled or could not be completed. Try again.";
     if (errParam === "config")
       return "Supabase env is missing on the server. In Vercel → Project → Settings → Environment Variables, add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY for Production and Preview, then redeploy.";
     if (errParam === "middleware") return "Authentication service error. Try again in a moment.";
@@ -47,7 +52,7 @@ function LoginForm() {
         setError(mapAuthError(signErr.message));
         return;
       }
-      router.replace(redirect.startsWith("/") ? redirect : "/");
+      router.replace(safeRedirect);
       router.refresh();
     } finally {
       setLoading(false);
@@ -58,8 +63,21 @@ function LoginForm() {
     <div className="space-y-6">
       <Card title="Log in">
         <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
-          Sign in with your email and password.
+          Sign in with Google, Apple, or your email and password.
         </p>
+
+        <OAuthSocialButtons redirectPath={safeRedirect} />
+
+        <div className="relative py-2">
+          <div className="absolute inset-0 flex items-center" aria-hidden>
+            <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase tracking-wide">
+            <span className="bg-slate-50/80 px-2 text-slate-500 dark:bg-surface/80 dark:text-slate-400">
+              Or with email
+            </span>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error ? (
