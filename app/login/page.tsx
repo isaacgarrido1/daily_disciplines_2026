@@ -27,7 +27,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(() => {
     if (errParam === "auth") return "Could not complete sign-in. Try again.";
     if (errParam === "config")
-      return "Server configuration error: add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.";
+      return "Supabase env is missing on the server. In Vercel → Project → Settings → Environment Variables, add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY for Production and Preview, then redeploy.";
     if (errParam === "middleware") return "Authentication service error. Try again in a moment.";
     return null;
   });
